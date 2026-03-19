@@ -27,13 +27,13 @@ export const onRequest = async (context) => {
             body: body,
         });
         response = await signedFetch(backendUrl, {
-            method: 'POST',
+            method: context.request.method,
             headers: { "Content-Type": "application/json" },
             body: body,
         });
     }
 
-    const responseBody = await response.text();
+    const responseBody = await response.clone().json();
     console.log({
         status: response.status,
         responseBody: responseBody,
