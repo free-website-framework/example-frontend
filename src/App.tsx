@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Fragment } from "react";
 
 const timeValues = import.meta.env.VITE_TIME_VALUES
   ? import.meta.env.VITE_TIME_VALUES.split(",").map((v: string) => parseInt(v))
@@ -56,25 +57,6 @@ export default function App() {
     }
   };
 
-  const getDiffs = (timestamps?: string[]) => {
-    if (!timestamps || timestamps.length === 0) return [];
-
-    const now = Date.now();
-    const times = timestamps.map((t) => new Date(t).getTime());
-
-    const diffs: number[] = [];
-
-    for (let i = 0; i < times.length; i++) {
-      if (i === 0) {
-        diffs.push(now - times[i]);
-      } else {
-        diffs.push(times[i - 1] - times[i]);
-      }
-    }
-
-    return diffs.slice(0, 5);
-  };
-
   return (
     <div className="container mt-5 text-center">
       {/* ===== TIME ===== */}
@@ -123,20 +105,42 @@ export default function App() {
           </tr>
         </thead>
         <tbody>
-          {actions.map((action: string) => {
-            const diffs = getDiffs(data[action]);
+          {(() => {
+            const now = Date.now();
 
-            return (
-              <tr key={action}>
-                <td style={{ padding: "12px 20px" }}>{action}</td>
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <td key={i} style={{ padding: "12px 20px" }}>
-                    {diffs[i] ? formatDiff(diffs[i]) : ""}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+            return actions.map((action: string) => {
+              const times =
+                data[action]?.slice(0, 5).map((t) => new Date(t).getTime()) ??
+                [];
+
+              const elapsed = times.map((t) => now - t);
+              const intervals = times.map((t, i, arr) =>
+                i === 0 ? now - t : arr[i - 1] - t,
+              );
+
+              return (
+                <Fragment key={action}>
+                  <tr>
+                    <td style={{ padding: "12px 20px" }}>{action}</td>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <td key={i} style={{ padding: "12px 20px" }}>
+                        {elapsed[i] ? formatDiff(elapsed[i]) : ""}
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td style={{ padding: "12px 20px" }}>\</td>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <td key={i} style={{ padding: "12px 20px" }}>
+                        {intervals[i] ? formatDiff(intervals[i]) : ""}
+                      </td>
+                    ))}
+                  </tr>
+                </Fragment>
+              );
+            });
+          })()}
         </tbody>
       </table>
     </div>
