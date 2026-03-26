@@ -36,6 +36,18 @@ export default function App() {
   const [selectedTime, setSelectedTime] = useState<number>(0);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [data, setData] = useState<BackendData>({});
+  type Toast = { id: number; text: string; type: "success" | "error" };
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (text: string, type: Toast["type"]) => {
+    const id = Date.now() + Math.random();
+
+    setToasts((prev) => [...prev, { id, text, type }]);
+
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
+  };
 
   // ===== GET =====
   const fetchData = async () => {
@@ -53,19 +65,34 @@ export default function App() {
 
   // ===== POST =====
   const handleActionClick = async (action: string) => {
-    setSelectedAction(action);
+    try {
+      setSelectedAction(action);
+      const delay = selectedTime;
 
-    const res = await fetch("/timestamps", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: action,
-        delay: selectedTime,
-      }),
-    });
+      const res = await fetch("/timestamps", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action, delay }),
+      });
 
-    if (res.ok) {
-      fetchData();
+      const data = await res.json().catch(() => null);
+
+      if (res.ok) {
+        addToast(
+          `Saved "${action}" with delay ${delay} successfully`,
+          "success",
+        );
+        fetchData();
+      } else {
+        addToast(
+          `Error "${action}" with delay ${delay}: ${data?.message || "Failed to save"}`,
+          "error",
+        );
+      }
+    } catch (error: any) {
+      addToast(`Network error: ${error?.message || "Unknown error"}`, "error");
     }
   };
 
@@ -148,6 +175,23 @@ export default function App() {
           })}
         </tbody>
       </table>
+
+      {/* ===== TOASTS ===== */}
+      <div className="toast-container position-fixed bottom-0 end-0 p-3 d-flex flex-column gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`toast show align-items-center text-white border-0 ${
+              toast.type === "success" ? "bg-success" : "bg-danger"
+            }`}
+            role="alert"
+          >
+            <div className="d-flex">
+              <div className="toast-body">{toast.text}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
