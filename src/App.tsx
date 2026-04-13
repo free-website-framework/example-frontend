@@ -145,23 +145,12 @@ export default function App() {
             const now = Date.now();
             const times =
               data[action]?.slice(0, 5).map((t) => new Date(t).getTime()) ?? [];
-
-            const elapsed = times.map((t) => now - t);
             const intervals = times.map((t, i, arr) =>
               i === 0 ? now - t : arr[i - 1] - t,
             );
 
             return (
               <Fragment key={action}>
-                <tr>
-                  <td className="px-1 py-2">{action}</td>
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <td key={i} className="text-nowrap px-1 py-2">
-                      {elapsed[i] ? formatDiff(elapsed[i]) : ""}
-                    </td>
-                  ))}
-                </tr>
-
                 <tr>
                   <td className="px-1 py-2">-</td>
                   {[0, 1, 2, 3, 4].map((i) => (
