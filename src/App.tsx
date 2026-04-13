@@ -51,7 +51,7 @@ export default function App() {
 
   // ===== GET =====
   const fetchData = async () => {
-    const res = await fetch("/timestamps");
+    const res = await fetch("/api/timestamps");
     if (res.ok) {
       const json = await res.json();
       console.log(json);
@@ -69,7 +69,7 @@ export default function App() {
       setSelectedAction(action);
       const delay = selectedTime;
 
-      const res = await fetch("/timestamps", {
+      const res = await fetch("/api/timestamps", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
